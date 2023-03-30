@@ -1,13 +1,11 @@
 [%%LOGIN%%]
-user = %%LOGIN%%
-group = %%LOGIN%%
+user = %%PREFIXED_LOGIN%%
+group = %%PREFIXED_LOGIN%%
 listen = /run/php/php7.1-%%LOGIN%%.sock
-listen.owner = %%LOGIN%%
-listen.group = %%LOGIN%%
+listen.owner = %%PREFIXED_LOGIN%%
+listen.group = %%PREFIXED_LOGIN%%
 pm = ondemand
 pm.max_children = 10
 pm.process_idle_timeout = 60s
 pm.max_requests = 1000
 catch_workers_output = yes
-
-
