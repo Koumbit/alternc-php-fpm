@@ -7,6 +7,33 @@
    
 require_once("/usr/share/alternc/panel/class/config_nochk.php");
 
+function myecho($str) {
+	 static $first=true;
+	 if ($first) {
+	    echo date("Y-m-d H:i:s")." Log of php7-fpm\n";
+	    $first=false;
+	 }
+	 echo $str."\n";
+}
+
+// If using prefixes, check if the prefix changed
+// If the prefix changed, we must rebuild the pools
+$db_user_prefix=variable_get("user_prefix");
+if (!is_null($db_user_prefix)) {
+    // retrieve currently used prefix
+    $db->query("SELECT login FROM membres LIMIT 1;");
+    $record=$db->fetch();
+    $first_user = $record['login'];
+    $current_prefix = exec("grep '/$first_user:' /var/lib/extrausers/passwd | cut -d ':' -f1 | sed s/$first_user//");
+    // Launch a complete conf rebuild if it doesn't match
+    if($db_user_prefix != $current_prefix) {
+        myecho("User prefixes don't match!\nDB prefix: $db_user_prefix / current prefix: $current_prefix");
+        myecho("Launching pools rebuild");
+        passthru("/usr/lib/alternc/php7-fpm_rebuild_pools");
+        exit;
+    }
+}
+
 // first launch sync_unix since we NEED unix user to exist!
 passthru("/usr/lib/alternc/install.d/alternc-nss end");
 
@@ -23,16 +50,6 @@ foreach($allversions as $k=>$version) {
     if (!is_dir("/etc/php/$version/fpm/pool.d")) {
         unset($allversions[$k]);
     }
-}
-
-
-function myecho($str) {
-	 static $first=true;
-	 if ($first) {
-	    echo date("Y-m-d H:i:s")." Log of php7-fpm\n";
-	    $first=false;
-	 }
-	 echo $str."\n";
 }
 
 while ($db->next_record()) {

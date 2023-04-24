@@ -1,0 +1,77 @@
+#!/usr/bin/php
+<?php
+
+/* Rebuild all FPM pools
+   deletes all pools and re-create them
+   This script is called by php7-fpm on user_prefix change
+*/
+
+function myecho($str) {
+    static $first=true;
+    if ($first) {
+        echo date("Y-m-d H:i:s")." Log of php7-fpm\n";
+        $first=false;
+    }
+    echo $str."\n";
+}
+
+require_once("/usr/share/alternc/panel/class/config_nochk.php");
+
+// first launch sync_unix since we NEED unix user to exist!
+passthru("/usr/lib/alternc/install.d/alternc-nss end");
+
+$allversions=array("5.6","7.0","7.1","7.2","7.3","7.4","8.0","8.1","8.2");
+
+// detect installed versions
+foreach($allversions as $k=>$version) {
+    if (!is_dir("/etc/php/$version/fpm/pool.d")) {
+        unset($allversions[$k]);
+    }
+}
+
+$reload=array();
+
+// delete existing pools
+foreach($allversions as $version) {
+    $d=opendir("/etc/php/$version/fpm/pool.d");
+    while (($c=readdir($d))!==false) {
+        if (preg_match('#([^\.]*).alternc.conf$#',$c,$mat)) {
+            $user=$mat[1];
+            myecho("Deleting php $version fpm pool for user $user");
+            @unlink("/etc/php/".$version."/fpm/pool.d/".$user.".alternc.conf");
+            $reload[$version]=$version;
+        }
+    }
+}
+
+$force = (isset($argv[1]) && $argv[1]=="force");
+
+$allpools=array();
+
+// recreate pools
+$db->query("SELECT DISTINCT m.login,m.uid,sd.type FROM sub_domaines sd, membres m WHERE m.uid=sd.compte AND sd.type IN ('php56-fpm','php70-fpm','php71-fpm','php72-fpm','php73-fpm','php74-fpm','php80-fpm','php81-fpm','php82-fpm');");
+
+while ($db->next_record()) {
+      $version=substr($db->f("type"),3,1).".".substr($db->f("type"),4,1);
+      $user=$db->f("login");
+      // Add user prefix support
+      $prefixed_user=$user;
+      $user_prefix=variable_get("user_prefix");
+      if (!is_null($user_prefix)) {
+          $prefixed_user=$user_prefix.$user;
+      }
+      $allpools[$version][]=$user;
+      if ($force || !is_file("/etc/php/".$version."/fpm/pool.d/".$user.".alternc.conf")) {
+          myecho("Creating php $version fpm pool for user $user");
+          $template=file_get_contents("/etc/alternc/templates/php/fpm-".$version);
+          $template=str_replace("%%PREFIXED_LOGIN%%", $prefixed_user, $template);
+          $template=str_replace("%%LOGIN%%",$user, $template);
+          file_put_contents("/etc/php/".$version."/fpm/pool.d/".$user.".alternc.conf", $template);
+          $reload[$version]=$version;
+      }
+}
+
+// reload all php fpm versions
+foreach($allversions as $version) {
+    passthru("/etc/init.d/php".$version."-fpm reload || /etc/init.d/php".$version."-fpm start");
+}
