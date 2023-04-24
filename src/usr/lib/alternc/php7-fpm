@@ -72,6 +72,6 @@ foreach($allversions as $version) {
 
 // now reloads php fpm versions
 foreach($reload as $service) {
-    passthru("/etc/init.d/php".$service."-fpm reload");  
+    passthru("/etc/init.d/php".$service."-fpm reload || /etc/init.d/php".$service."-fpm start");  
 }
 
