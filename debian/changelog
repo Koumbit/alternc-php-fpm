@@ -1,3 +1,10 @@
+alternc-php-fpm (3.4.1~1) oldstable; urgency=low
+
+  * Add user prefix support
+  * Add PHP8.1 and PHP8.2 support
+
+ -- Nina R. <nina@koumbit.org>  Fri,  2 Jun 2023 15:59:00 +0200
+
 alternc-php-fpm (3.4.1) oldstable; urgency=low
 
   * Fix some regressions, check alternc version to load php related php template
