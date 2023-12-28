@@ -53,7 +53,7 @@ case "$1" in
 	for type in "${fpm_domain_types[@]}"
 	do
 	    mysql --defaults-file=/etc/alternc/my.cnf -e "
-	UPDATE domaines_type SET compatibility=CONCAT_WS(',', compatibility, '$type') WHERE name IN ('defmx', 'defmx2', 'mx', 'mx2', 'panel', 'txt') AND compatibility NOT LIKE '%$type%';
+	UPDATE domaines_type SET compatibility=CONCAT_WS(',', compatibility, '$type') WHERE name IN (SELECT name FROM domaines_type WHERE compatibility like '%vhost%' and name != '$type') AND compatibility NOT LIKE '%$type%';
 	"
 	done
 
