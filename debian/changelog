@@ -1,3 +1,9 @@
+alternc-php-fpm (3.4.1~3) oldstable; urgency=low
+
+  * Add PHP8.4 support
+
+ -- Nina R. <nina@koumbit.org>  Tue, 27 May 2025 12:40:00 -0400
+
 alternc-php-fpm (3.4.1~2) oldstable; urgency=low
 
   * Add PHP8.3 support
