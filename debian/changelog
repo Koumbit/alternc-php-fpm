@@ -1,3 +1,10 @@
+alternc-php-fpm (3.4.2) oldstable; urgency=critical
+
+  * Light mitigation related to php2shell
+  * Related to CVE-2026-109618 / CVE-2026-109619
+  
+ -- Nina R. <nina@koumbit.org>  Tue, 6 Nov 2026 20:03:00 -0400
+
 alternc-php-fpm (3.4.1~4) oldstable; urgency=low
 
   * Add PHP8.5 support
